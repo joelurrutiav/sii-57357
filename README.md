@@ -16,6 +16,8 @@ Este repositorio contiene el material utilizado en las prácticas de la asignatu
 
 El objetivo de la asignatura es introducir en el desarrollo de aplicaciones para sistemas informáticos industriales, haciendo especial énfasis en el uso del lenguaje C y del sistema operativo Linux.
 
+PRÁCTICA 1: Se implementó la física de rebote para la esfera y el control de movimiento vertical de ambas raquetas.
+
 ---
 
 ## 📚 Wiki

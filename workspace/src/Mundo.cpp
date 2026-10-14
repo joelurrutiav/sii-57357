@@ -165,12 +165,13 @@ void CMundo::OnKeyboardDown(unsigned char key, int x, int y)
 void CMundo::Init()
 {
 	Plano p;
-//pared inferior
+	
+	//pared inferior
 	p.x1=-7;p.y1=-5;
 	p.x2=7;p.y2=-5;
 	paredes.push_back(p);
 
-//superior
+	//pared superior
 	p.x1=-7;p.y1=5;
 	p.x2=7;p.y2=5;
 	paredes.push_back(p);
@@ -192,4 +193,8 @@ void CMundo::Init()
 	jugador2.g=0;
 	jugador2.x1=6;jugador2.y1=-1;
 	jugador2.x2=6;jugador2.y2=1;
+	
+	// mov de la esfera
+	esfera.velocidad.x = 3.0f;
+	esfera.velocidad.y = 3.0f;
 }
