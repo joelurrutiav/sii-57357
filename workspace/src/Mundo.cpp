@@ -33,7 +33,7 @@ void CMundo::InitGL()
 	glEnable(GL_COLOR_MATERIAL);
 	
 	glMatrixMode(GL_PROJECTION);
-	gluPerspective( 40.0, 800/600.0f, 0.1, 150);
+	gluPerspective( 40.0, 1600/800.0f, 0.1, 150);
 }
 
 void print(char *mensaje, int x, int y, float r, float g, float b)
@@ -115,9 +115,9 @@ void CMundo::OnDraw()
 
 void CMundo::OnTimer(int value)
 {	
-	jugador1.Mueve(0.025f);
-	jugador2.Mueve(0.025f);
-	esfera.Mueve(0.025f);
+	jugador1.Mueve(0.016f);
+	jugador2.Mueve(0.016f);
+	esfera.Mueve(0.016f);
 	int i;
 	for(i=0;i<paredes.size();i++)
 	{
