@@ -18,6 +18,8 @@ El objetivo de la asignatura es introducir en el desarrollo de aplicaciones para
 
 PRÁCTICA 1: Se implementó la física de rebote para la esfera y el control de movimiento vertical de ambas raquetas.
 
+PRÁCTICA 2: Se implementó el logger, la comunicación FIFO y límite de 3 puntos.
+
 ---
 
 ## 📚 Wiki

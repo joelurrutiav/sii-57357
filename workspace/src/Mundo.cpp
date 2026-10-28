@@ -10,6 +10,12 @@
 #include <string.h>
 #include <math.h>
 
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -21,7 +27,7 @@ CMundo::CMundo()
 
 CMundo::~CMundo()
 {
-
+	if (fd_fifo != -1) close(fd_fifo);
 }
 
 void CMundo::InitGL()
@@ -59,8 +65,9 @@ void print(char *mensaje, int x, int y, float r, float g, float b)
 	glColor3f(r,g,b);
 	glRasterPos3f(x, glutGet(GLUT_WINDOW_HEIGHT)-18-y, 0);
 	int len = strlen (mensaje );
-	for (int i = 0; i < len; i++) 
-		glutBitmapCharacter (GLUT_BITMAP_HELVETICA_18, mensaje[i] );
+	for (int i = 0; i < len; i++) {
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, mensaje[i]);
+	}
 		
 	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();
@@ -135,6 +142,10 @@ void CMundo::OnTimer(int value)
 		esfera.velocidad.x=2+2*rand()/(float)RAND_MAX;
 		esfera.velocidad.y=2+2*rand()/(float)RAND_MAX;
 		puntos2++;
+		char msg[256];
+		sprintf(msg, "Jugador 2 marca 1 punto, lleva un total de %d puntos.\n", puntos2);
+		if (fd_fifo != -1) write(fd_fifo, msg, strlen(msg));
+		if (puntos2 >= 3) exit(0);
 	}
 
 	if(fondo_dcho.Rebota(esfera))
@@ -197,4 +208,7 @@ void CMundo::Init()
 	// mov de la esfera
 	esfera.velocidad.x = 3.0f;
 	esfera.velocidad.y = 3.0f;
+	
+	//abrimos la tuberia
+	fd_fifo = open("/tmp/tenis_fifo", O_WRONLY);
 }
