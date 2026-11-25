@@ -15,6 +15,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/mman.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -27,7 +28,10 @@ CMundo::CMundo()
 
 CMundo::~CMundo()
 {
-	if (fd_fifo != -1) close(fd_fifo);
+    if (fd_fifo != -1) close(fd_fifo);
+    if (dat_mem != nullptr && dat_mem != MAP_FAILED) {
+        munmap(dat_mem, sizeof(DatosMemCompartida));
+    }
 }
 
 void CMundo::InitGL()
@@ -122,6 +126,19 @@ void CMundo::OnDraw()
 
 void CMundo::OnTimer(int value)
 {	
+	if (dat_mem != nullptr && dat_mem != MAP_FAILED)
+        {
+            dat_mem->esfera = esfera;
+            dat_mem->raqueta1 = jugador1;
+
+            if (dat_mem->accion == 1) {
+                OnKeyboardDown('w', 0, 0);
+            } else if (dat_mem->accion == -1) {
+                OnKeyboardDown('s', 0, 0);
+            } else {
+                jugador1.velocidad.y = 0;
+            }
+        }
 	jugador1.Mueve(0.016f);
 	jugador2.Mueve(0.016f);
 	esfera.Mueve(0.016f);
@@ -211,4 +228,15 @@ void CMundo::Init()
 	
 	//abrimos la tuberia
 	fd_fifo = open("/tmp/tenis_fifo", O_WRONLY);
+	
+	dat_mem = nullptr;
+	int fd_mem = open("/tmp/mem_tenis", O_CREAT | O_RDWR | O_TRUNC, 0666);
+	if (fd_mem != -1) {
+	    // Darle al archivo el tamaño exacto de nuestra clase
+	    ftruncate(fd_mem, sizeof(DatosMemCompartida));
+	    
+	    // Proyectarlo en memoria
+	    dat_mem = (DatosMemCompartida*)mmap(NULL, sizeof(DatosMemCompartida), PROT_READ | PROT_WRITE, MAP_SHARED, fd_mem, 0);
+	    close(fd_mem);
+	}
 }
