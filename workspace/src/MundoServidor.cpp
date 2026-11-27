@@ -2,20 +2,17 @@
 //
 //////////////////////////////////////////////////////////////////////
 #include <fstream>
-#include "Mundo.h"
+#include "MundoServidor.h"
 #include "glut.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-
 #include <fcntl.h>
 #include <unistd.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -29,10 +26,13 @@ CMundo::CMundo()
 CMundo::~CMundo()
 {
     if (fd_fifo != -1) close(fd_fifo);
-    if (dat_mem != nullptr && dat_mem != MAP_FAILED) {
-        munmap(dat_mem, sizeof(DatosMemCompartida));
+    if (fd_estado != -1) {
+        close(fd_estado);
+        unlink("/tmp/fifo_estado");
     }
+    if (fd_teclas != -1) close(fd_teclas);
 }
+
 
 void CMundo::InitGL()
 {
@@ -125,70 +125,99 @@ void CMundo::OnDraw()
 }
 
 void CMundo::OnTimer(int value)
-{	
-	if (dat_mem != nullptr && dat_mem != MAP_FAILED)
-        {
-            dat_mem->esfera = esfera;
-            dat_mem->raqueta1 = jugador1;
+{
+    jugador1.Mueve(0.016f);
+    jugador2.Mueve(0.016f);
+    esfera.Mueve(0.016f);
 
-            if (dat_mem->accion == 1) {
-                OnKeyboardDown('w', 0, 0);
-            } else if (dat_mem->accion == -1) {
-                OnKeyboardDown('s', 0, 0);
-            } else {
-                jugador1.velocidad.y = 0;
-            }
-        }
-	jugador1.Mueve(0.016f);
-	jugador2.Mueve(0.016f);
-	esfera.Mueve(0.016f);
-	int i;
-	for(i=0;i<paredes.size();i++)
-	{
-		paredes[i].Rebota(esfera);
-		paredes[i].Rebota(jugador1);
-		paredes[i].Rebota(jugador2);
-	}
+    int i;
+    for (i = 0; i < paredes.size(); i++)
+    {
+        paredes[i].Rebota(esfera);
+        paredes[i].Rebota(jugador1);
+        paredes[i].Rebota(jugador2);
+    }
 
-	jugador1.Rebota(esfera);
-	jugador2.Rebota(esfera);
-	if(fondo_izq.Rebota(esfera))
-	{
-		esfera.centro.x=0;
-		esfera.centro.y=rand()/(float)RAND_MAX;
-		esfera.velocidad.x=2+2*rand()/(float)RAND_MAX;
-		esfera.velocidad.y=2+2*rand()/(float)RAND_MAX;
-		puntos2++;
-		char msg[256];
-		sprintf(msg, "Jugador 2 marca 1 punto, lleva un total de %d puntos.\n", puntos2);
-		if (fd_fifo != -1) write(fd_fifo, msg, strlen(msg));
-		if (puntos2 >= 3) exit(0);
-	}
+    jugador1.Rebota(esfera);
+    jugador2.Rebota(esfera);
 
-	if(fondo_dcho.Rebota(esfera))
-	{
-		esfera.centro.x=0;
-		esfera.centro.y=rand()/(float)RAND_MAX;
-		esfera.velocidad.x=-2-2*rand()/(float)RAND_MAX;
-		esfera.velocidad.y=-2-2*rand()/(float)RAND_MAX;
-		puntos1++;
-	}
+    bool fin = false;
 
+    if (fondo_izq.Rebota(esfera))
+    {
+        esfera.centro.x = 0;
+        esfera.centro.y = rand() / (float)RAND_MAX;
+        esfera.velocidad.x = 2 + 2 * rand() / (float)RAND_MAX;
+        esfera.velocidad.y = 2 + 2 * rand() / (float)RAND_MAX;
+        puntos2++;
+        char msg[256];
+        sprintf(msg, "Jugador 2 marca 1 punto, lleva un total de %d puntos.\n", puntos2);
+        if (fd_fifo != -1) write(fd_fifo, msg, strlen(msg));
+        if (puntos2 >= 3) fin = true;
+    }
+
+    if (fondo_dcho.Rebota(esfera))
+    {
+        esfera.centro.x = 0;
+        esfera.centro.y = rand() / (float)RAND_MAX;
+        esfera.velocidad.x = -2 - 2 * rand() / (float)RAND_MAX;
+        esfera.velocidad.y = -2 - 2 * rand() / (float)RAND_MAX;
+        puntos1++;
+        char msg[256];
+        sprintf(msg, "Jugador 1 marca 1 punto, lleva un total de %d puntos.\n", puntos1);
+        if (fd_fifo != -1) write(fd_fifo, msg, strlen(msg));
+        if (puntos1 >= 3) fin = true;
+    }
+
+    // Enviar estado actualizado al Cliente
+    if (fd_estado != -1)
+    {
+        char cad[200] = {0};
+        sprintf(cad, "%f %f %f %f %f %f %f %f %f %f %d %d",
+                esfera.centro.x, esfera.centro.y,
+                jugador1.x1, jugador1.y1, jugador1.x2, jugador1.y2,
+                jugador2.x1, jugador2.y1, jugador2.x2, jugador2.y2,
+                puntos1, puntos2);
+        write(fd_estado, cad, sizeof(cad));
+    }
+
+    if (fin) exit(0);
 }
 
 void CMundo::OnKeyboardDown(unsigned char key, int x, int y)
 {
-	switch(key)
-	{
-//	case 'a':jugador1.velocidad.x=-1;break;
-//	case 'd':jugador1.velocidad.x=1;break;
-	case 's':jugador1.velocidad.y=-4;break;
-	case 'w':jugador1.velocidad.y=4;break;
-	case 'l':jugador2.velocidad.y=-4;break;
-	case 'o':jugador2.velocidad.y=4;break;
-
-	}
+    // El servidor no lee teclado local, recibe comandos del cliente por FIFO en RecibeComandosJugador()
 }
+
+void CMundo::RecibeComandosJugador()
+{
+    while ((fd_teclas = open("/tmp/fifo_teclas", O_RDONLY)) == -1) {
+        usleep(10000);
+    }
+
+    while (1) {
+        usleep(10);
+        char cad[100] = {0};
+        int bytes = read(fd_teclas, cad, sizeof(cad));
+        if (bytes <= 0) break;
+
+        unsigned char key;
+        sscanf(cad, "%c", &key);
+        if (key == 's') jugador1.velocidad.y = -4;
+        if (key == 'w') jugador1.velocidad.y = 4;
+        if (key == 'x') jugador1.velocidad.y = 0;
+        if (key == 'l') jugador2.velocidad.y = -4;
+        if (key == 'o') jugador2.velocidad.y = 4;
+    }
+}
+
+void* hilo_comandos(void* d)
+{
+    CMundo* p = (CMundo*) d;
+    p->RecibeComandosJugador();
+    return NULL;
+}
+
 
 void CMundo::Init()
 {
@@ -226,17 +255,16 @@ void CMundo::Init()
 	esfera.velocidad.x = 3.0f;
 	esfera.velocidad.y = 3.0f;
 	
-	//abrimos la tuberia
-	fd_fifo = open("/tmp/tenis_fifo", O_WRONLY);
-	
-	dat_mem = nullptr;
-	int fd_mem = open("/tmp/mem_tenis", O_CREAT | O_RDWR | O_TRUNC, 0666);
-	if (fd_mem != -1) {
-	    // Darle al archivo el tamaño exacto de nuestra clase
-	    ftruncate(fd_mem, sizeof(DatosMemCompartida));
-	    
-	    // Proyectarlo en memoria
-	    dat_mem = (DatosMemCompartida*)mmap(NULL, sizeof(DatosMemCompartida), PROT_READ | PROT_WRITE, MAP_SHARED, fd_mem, 0);
-	    close(fd_mem);
-	}
+	// Conectar con el logger
+        fd_fifo = open("/tmp/tenis_fifo", O_WRONLY);
+
+        // Crear y abrir FIFO de estado hacia el cliente
+        unlink("/tmp/fifo_estado");
+        mkfifo("/tmp/fifo_estado", 0666);
+        fd_estado = open("/tmp/fifo_estado", O_WRONLY);
+
+        // Lanzar el hilo receptor de teclas del cliente
+        fd_teclas = -1;
+        pthread_create(&thid1, NULL, hilo_comandos, this);
+
 }

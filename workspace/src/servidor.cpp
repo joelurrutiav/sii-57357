@@ -1,5 +1,5 @@
 #include "glut.h"
-#include "Mundo.h"
+#include "MundoServidor.h"
 
 //el unico objeto global
 CMundo mundo;
@@ -18,14 +18,14 @@ int main(int argc,char* argv[])
 	glutInit(&argc, argv);
 	glutInitWindowSize(1600,800);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-	glutCreateWindow("Mundo");
+	glutCreateWindow("Servidor");
 
 
 	//Registrar los callbacks
 	glutDisplayFunc(OnDraw);
 	//glutMouseFunc(OnRaton);
 
-	glutTimerFunc(16,OnTimer,0);//le decimos que dentro de 16ms llame 1 vez a la funcion OnTimer()
+	glutTimerFunc(25,OnTimer,0);//le decimos que dentro de 16ms llame 1 vez a la funcion OnTimer()
 	glutKeyboardFunc(OnKeyboardDown);
 	glutSetCursor(GLUT_CURSOR_FULL_CROSSHAIR);
 	
@@ -45,7 +45,7 @@ void OnDraw(void)
 void OnTimer(int value)
 {
 	mundo.OnTimer(value);
-	glutTimerFunc(16,OnTimer,0);
+	glutTimerFunc(25,OnTimer,0);
 	glutPostRedisplay();
 }
 void OnKeyboardDown(unsigned char key, int x, int y)

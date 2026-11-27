@@ -1,20 +1,9 @@
-// Mundo.h: interface for the CMundo class.
-//
-//////////////////////////////////////////////////////////////////////
-
-#if !defined(AFX_MUNDO_H__9510340A_3D75_485F_93DC_302A43B8039A__INCLUDED_)
-#define AFX_MUNDO_H__9510340A_3D75_485F_93DC_302A43B8039A__INCLUDED_
-
 #include <vector>
 #include "Plano.h"
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
-
+#include <pthread.h>
 #include "Esfera.h"
 #include "Raqueta.h"
-#include "DatosMemCompartida.h"
 
 class CMundo  
 {
@@ -27,6 +16,7 @@ public:
 	void OnKeyboardDown(unsigned char key, int x, int y);
 	void OnTimer(int value);
 	void OnDraw();	
+	void RecibeComandosJugador();
 
 	Esfera esfera;
 	std::vector<Plano> paredes;
@@ -38,7 +28,7 @@ public:
 	int puntos1;
 	int puntos2;
 	int fd_fifo;
-	DatosMemCompartida* dat_mem;
+	int fd_estado;
+	int fd_teclas;
+	pthread_t thid1;
 };
-
-#endif // !defined(AFX_MUNDO_H__9510340A_3D75_485F_93DC_302A43B8039A__INCLUDED_)

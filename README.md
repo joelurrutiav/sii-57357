@@ -12,15 +12,15 @@ Material docente de la asignatura **Sistemas Informáticos Industriales** de la 
 
 ## 📖 Descripción
 
-Este repositorio contiene el material utilizado en las prácticas de la asignatura **Sistemas Informáticos Industriales**, incluyendo los guiones y el código de inicio.
-
 El objetivo de la asignatura es introducir en el desarrollo de aplicaciones para sistemas informáticos industriales, haciendo especial énfasis en el uso del lenguaje C y del sistema operativo Linux.
 
-PRÁCTICA 1: Se implementó la física de rebote para la esfera y el control de movimiento vertical de ambas raquetas.
+PRÁCTICA 1: Se implementa la física de rebote para la esfera y el control de movimiento vertical de ambas raquetas.
 
-PRÁCTICA 2: Se implementó el logger, la comunicación mediante tubería FIFO y el límite de 3 puntos.
+PRÁCTICA 2: Se implementa el logger, la comunicación mediante tubería FIFO y el límite de 3 puntos.
 
-PRÁCTICA 3: Se implementó el proceso bot y la comunicación bidireccional mediante proyección de ficheros en memoria (mmap) para el control automático de la raqueta 1.
+PRÁCTICA 3: Se implementa el proceso bot y la comunicación bidireccional mediante proyección de ficheros en memoria (mmap) para el control automático de la raqueta 1.
+
+PRÁCTICA 4: Se separa el juego en arquitectura cliente servidor comunicados mediante dos tuberías FIFO (coordenadas y teclas) y un hilo concurrente (pthread) en el servidor, manteniendo el logger conectado al servidor y el bot al cliente.
 
 ---
 
